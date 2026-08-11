@@ -2,8 +2,8 @@ package com.snow.deathlog;
 
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 
 public class DeathLog implements ModInitializer {
 
@@ -16,25 +16,28 @@ public class DeathLog implements ModInitializer {
                 return;
             }
 
-            var server = player.getServer();
+            var server = player.level().getServer();
             if (server == null) {
                 return;
             }
 
             String name = player.getName().getString();
-            String uuid = player.getUuidAsString();
-            String dimension = player.getWorld()
-                    .getRegistryKey()
-                    .getValue()
+            String uuid = player.getUUID().toString();
+
+            String dimension = player.level()
+                    .dimension()
+                    .location()
                     .toString();
 
             double x = player.getX();
             double y = player.getY();
             double z = player.getZ();
 
-            String cause = damageSource.getDeathMessage(player).getString();
+            String cause = player.getCombatTracker()
+                    .getDeathMessage()
+                    .getString();
 
-            server.sendMessage(
+            server.sendSystemMessage(
                     Component.literal(
                             "[DeathLog] " + name
                                     + " died at "
