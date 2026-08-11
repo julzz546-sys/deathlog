@@ -201,7 +201,7 @@ public final class DeathLogEvent {
 
                 first = false;
 
-                String enchantmentId = enchantmentHolder.unwrapKey().map(key -> key.location().toString()).orElseGet(() -> enchantmentHolder.getRegisteredName());
+                String enchantmentId = enchantmentHolder.unwrapKey().map(key -> key.identifier().toString()).orElseGet(() -> enchantmentHolder.getRegisteredName());
 
                 out.append(enchantmentId)
                         .append(" ")
