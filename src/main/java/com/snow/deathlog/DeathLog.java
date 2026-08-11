@@ -1,12 +1,12 @@
 package com.snow.deathlog;
 
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.api.CommandSource;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.permissions.Permissions;
 
 public class DeathLog implements ModInitializer {
 
@@ -19,7 +19,7 @@ public class DeathLog implements ModInitializer {
         CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) -> {
             dispatcher.register(
                     Commands.literal("deathlog")
-                            .requires(source -> source.hasPermission(2))
+                            .requires(source -> source.permissions().hasPermission(Permissions.COMMANDS_MODERATOR))
                             .then(Commands.literal("reload")
                                     .executes(context -> {
                                         DeathLogConfig.load();
