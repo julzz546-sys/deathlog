@@ -12,7 +12,7 @@ public class DeathLog implements ModInitializer {
     @Override
     public void onInitialize() {
         ServerLivingEntityEvents.AFTER_DEATH.register((entity, damageSource) -> {
-            if (!(entity instanceof ServerPlayerEntity player)) {
+            if (!(entity instanceof ServerPlayer player)) {
                 return;
             }
 
@@ -32,10 +32,10 @@ public class DeathLog implements ModInitializer {
             double y = player.getY();
             double z = player.getZ();
 
-            String cause = damageSource.getName();
+            String cause = damageSource.getDeathMessage(player).getString();
 
             server.sendMessage(
-                    Text.literal(
+                    Component.literal(
                             "[DeathLog] " + name
                                     + " died at "
                                     + dimension
