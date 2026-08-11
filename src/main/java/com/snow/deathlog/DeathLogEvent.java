@@ -4,6 +4,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 public final class DeathLogEvent {
 
@@ -29,7 +31,6 @@ public final class DeathLogEvent {
                     .getString();
 
             int level = player.experienceLevel;
-            float progress = player.experienceProgress;
             int totalExperience = player.totalExperience;
 
             float health = player.getHealth();
@@ -51,8 +52,6 @@ public final class DeathLogEvent {
                             + "\nCause: " + cause
                             + "\nLevel: " + level
                             + " | XP: " + totalExperience
-                            + " | Progress: "
-                            + String.format("%.2f", progress)
                             + "\nHealth: "
                             + String.format("%.1f", health)
                             + " | Food: " + food
@@ -177,10 +176,8 @@ public final class DeathLogEvent {
             return;
         }
 
-        String itemId = stack.getItem()
-                .builtInRegistryHolder()
-                .key()
-                .identifier()
+        String itemId = BuiltInRegistries.ITEM
+                .getKey(stack.getItem())
                 .toString();
 
         out.append("- ")
@@ -188,7 +185,35 @@ public final class DeathLogEvent {
                 .append(": ")
                 .append(itemId)
                 .append(" x")
-                .append(stack.getCount())
-                .append("\n");
+                .append(stack.getCount());
+
+        if (stack.isEnchanted()) {
+            out.append(" [Enchants: ");
+
+            boolean first = true;
+
+            for (var entry : stack.getEnchantments().entrySet()) {
+                Enchantment enchantment = entry.getKey();
+                int level = entry.getIntValue();
+
+                if (!first) {
+                    out.append(", ");
+                }
+
+                first = false;
+
+                String enchantmentId = BuiltInRegistries.ENCHANTMENT
+                        .getKey(enchantment)
+                        .toString();
+
+                out.append(enchantmentId)
+                        .append(" ")
+                        .append(level);
+            }
+
+            out.append("]");
+        }
+
+        out.append("\n");
     }
 }
