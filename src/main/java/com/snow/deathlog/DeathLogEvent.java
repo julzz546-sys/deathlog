@@ -1,6 +1,7 @@
 package com.snow.deathlog;
 
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 
@@ -46,35 +47,30 @@ public final class DeathLogEvent {
                             + " (" + uuid + ")"
                             + "\nDimension: " + dimension
                             + "\nLocation: "
-                            + String.format(
-                                    "%.1f %.1f %.1f",
-                                    x, y, z
-                            )
+                            + String.format("%.1f %.1f %.1f", x, y, z)
                             + "\nCause: " + cause
                             + "\nLevel: " + level
                             + " | XP: " + totalExperience
                             + " | Progress: "
-                            + String.format(
-                                    "%.2f",
-                                    progress
-                            )
+                            + String.format("%.2f", progress)
                             + "\nHealth: "
                             + String.format("%.1f", health)
                             + " | Food: " + food
                             + " | Saturation: "
-                            + String.format(
-                                    "%.1f",
-                                    saturation
-                            )
+                            + String.format("%.1f", saturation)
                             + "\nGameMode: " + gameMode
                             + "\n\nInventory:\n"
                             + inventory;
 
+            var server = player.level().getServer();
+
+            if (server == null) {
+                return;
+            }
+
             if (DeathLogConfig.current.chat.enabled) {
-                player.level().getServer().sendSystemMessage(
-                        net.minecraft.network.chat.Component.literal(
-                                message
-                        )
+                server.sendSystemMessage(
+                        net.minecraft.network.chat.Component.literal(message)
                 );
             }
 
@@ -84,7 +80,7 @@ public final class DeathLogEvent {
 
             if (DeathLogConfig.current.webhook.enabled) {
                 DeathLogWebhook.send(
-                        player.getServer(),
+                        server,
                         name,
                         uuid,
                         dimension,
@@ -137,20 +133,36 @@ public final class DeathLogEvent {
 
         out.append("\nArmor:\n");
 
-        for (int slot = 0; slot < 4; slot++) {
-            appendItem(
-                    out,
-                    "Armor " + slot,
-                    inv.getArmor(slot)
-            );
-        }
+        appendItem(
+                out,
+                "Helmet",
+                player.getItemBySlot(EquipmentSlot.HEAD)
+        );
+
+        appendItem(
+                out,
+                "Chestplate",
+                player.getItemBySlot(EquipmentSlot.CHEST)
+        );
+
+        appendItem(
+                out,
+                "Leggings",
+                player.getItemBySlot(EquipmentSlot.LEGS)
+        );
+
+        appendItem(
+                out,
+                "Boots",
+                player.getItemBySlot(EquipmentSlot.FEET)
+        );
 
         out.append("\nOffhand:\n");
 
         appendItem(
                 out,
                 "Offhand",
-                inv.offhand.get(0)
+                player.getItemBySlot(EquipmentSlot.OFFHAND)
         );
 
         return out.toString();
