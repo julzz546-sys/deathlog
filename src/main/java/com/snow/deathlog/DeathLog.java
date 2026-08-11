@@ -25,8 +25,7 @@ public class DeathLog implements ModInitializer {
             String uuid = player.getUUID().toString();
 
             String dimension = player.level()
-                    .dimension()
-                    .location()
+                    .dimension().identifier()
                     .toString();
 
             double x = player.getX();
