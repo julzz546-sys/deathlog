@@ -4,7 +4,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.core.registries.BuiltInRegistries;
 
 public final class DeathLogEvent {
@@ -193,7 +192,7 @@ public final class DeathLogEvent {
             boolean first = true;
 
             for (var entry : stack.getEnchantments().entrySet()) {
-                Enchantment enchantment = entry.getKey();
+                var enchantmentHolder = entry.getKey();
                 int level = entry.getIntValue();
 
                 if (!first) {
@@ -202,9 +201,7 @@ public final class DeathLogEvent {
 
                 first = false;
 
-                String enchantmentId = BuiltInRegistries.ENCHANTMENT
-                        .getKey(enchantment)
-                        .toString();
+                String enchantmentId = enchantmentHolder.unwrapKey().map(key -> key.location().toString()).orElseGet(() -> enchantmentHolder.getRegisteredName());
 
                 out.append(enchantmentId)
                         .append(" ")
