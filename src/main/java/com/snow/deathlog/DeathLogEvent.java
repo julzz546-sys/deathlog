@@ -121,11 +121,11 @@ public final class DeathLogEvent {
 
         out.append("\nInventory:\n");
 
-        for (int slot = 9; slot < inv.items.size(); slot++) {
+        for (int slot = 9; slot < 36; slot++) {
             appendItem(
                     out,
                     "Slot " + slot,
-                    inv.items.get(slot)
+                    inv.getItem(slot)
             );
         }
 
