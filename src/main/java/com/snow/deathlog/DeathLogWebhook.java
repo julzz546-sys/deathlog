@@ -44,21 +44,14 @@ public final class DeathLogWebhook {
         JsonObject root = new JsonObject();
 
         if (!config.username.isBlank()) {
-            root.addProperty(
-                    "username",
-                    config.username
-            );
+            root.addProperty("username", config.username);
         }
 
         if (!config.avatarUrl.isBlank()) {
-            root.addProperty(
-                    "avatar_url",
-                    config.avatarUrl
-            );
+            root.addProperty("avatar_url", config.avatarUrl);
         }
 
         JsonArray embeds = new JsonArray();
-
         JsonObject embed = new JsonObject();
 
         embed.addProperty(
@@ -68,77 +61,100 @@ public final class DeathLogWebhook {
 
         embed.addProperty(
                 "description",
-                "**" + escape(name)
-                        + "** died."
+                "**" + escape(name) + "** died."
         );
 
         JsonArray fields = new JsonArray();
 
         addField(
                 fields,
-                "Player",
-                name + "\n`" + uuid + "`",
+                "👤 Player",
+                "**" + escape(name) + "**\n"
+                        + "UUID: `" + uuid + "`",
                 true
         );
 
         addField(
                 fields,
-                "Dimension",
-                "`" + dimension + "`",
-                true
-        );
-
-        addField(
-                fields,
-                "Location",
-                String.format(
-                        "`%.1f %.1f %.1f`",
-                        x, y, z
-                ),
-                true
-        );
-
-        addField(
-                fields,
-                "Cause",
-                cause,
+                "💀 Death",
+                "**Cause:** " + escape(cause),
                 false
         );
 
         addField(
                 fields,
-                "Stats",
+                "🌍 Location",
+                "**Dimension:** `" + dimension + "`\n"
+                        + "**XYZ:** `"
+                        + String.format(
+                                "%.1f %.1f %.1f",
+                                x, y, z
+                        )
+                        + "`",
+                true
+        );
+
+        addField(
+                fields,
+                "📊 Stats",
                 "Level: `" + level + "`\n"
                         + "XP: `" + totalExperience + "`\n"
-                        + "Health: `"
-                        + String.format("%.1f", health)
-                        + "`\n"
+                        + "Health: `" + String.format("%.1f", health) + "`\n"
                         + "Food: `" + food + "`\n"
-                        + "Saturation: `"
-                        + String.format(
-                                "%.1f",
-                                saturation
-                        )
-                        + "`\n"
-                        + "GameMode: `" + gameMode + "`",
-                false
+                        + "Saturation: `" + String.format("%.1f", saturation) + "`\n"
+                        + "Gamemode: `" + gameMode + "`",
+                true
         );
 
-        addField(
+        addInventoryField(
                 fields,
-                "Inventory",
-                "```text\n"
-                        + limitInventory(inventory)
-                        + "\n```",
-                false
+                "⚔️ Main Hand",
+                section(inventory, "Main Hand:", "Offhand:")
+        );
+
+        addInventoryField(
+                fields,
+                "🖐️ Offhand",
+                section(inventory, "Offhand:", null)
+        );
+
+        addInventoryField(
+                fields,
+                "🎒 Hotbar",
+                section(inventory, "Hotbar:", "Inventory:")
+        );
+
+        addInventoryField(
+                fields,
+                "📦 Inventory",
+                section(inventory, "Inventory:", "Armor:")
+        );
+
+        addInventoryField(
+                fields,
+                "🛡️ Armor",
+                section(inventory, "Armor:", "Main Hand:")
         );
 
         embed.add("fields", fields);
 
+        embed.addProperty(
+                "footer",
+                "DeathLog • v1.2.0"
+        );
+
+        embed.addProperty(
+                "timestamp",
+                java.time.Instant.now().toString()
+        );
+
         embeds.add(embed);
         root.add("embeds", embeds);
 
-        sendJson(config.url, root.toString());
+        sendJson(
+                config.url,
+                root.toString()
+        );
     }
 
     public static void sendTest(MinecraftServer server) {
@@ -151,18 +167,19 @@ public final class DeathLogWebhook {
 
         JsonObject root = new JsonObject();
 
-        root.addProperty(
-                "username",
-                config.username
-        );
+        if (!config.username.isBlank()) {
+            root.addProperty(
+                    "username",
+                    config.username
+            );
+        }
 
         JsonArray embeds = new JsonArray();
-
         JsonObject embed = new JsonObject();
 
         embed.addProperty(
                 "title",
-                "DeathLog Test"
+                "✅ DeathLog Test"
         );
 
         embed.addProperty(
@@ -170,11 +187,18 @@ public final class DeathLogWebhook {
                 "Webhook connection is working."
         );
 
-        embeds.add(embed);
+        embed.addProperty(
+                "footer",
+                "DeathLog • v1.2.0"
+        );
 
+        embeds.add(embed);
         root.add("embeds", embeds);
 
-        sendJson(config.url, root.toString());
+        sendJson(
+                config.url,
+                root.toString()
+        );
     }
 
     private static void addField(
@@ -186,10 +210,65 @@ public final class DeathLogWebhook {
         JsonObject field = new JsonObject();
 
         field.addProperty("name", name);
-        field.addProperty("value", value);
+        field.addProperty(
+                "value",
+                value.isBlank() ? "Empty" : value
+        );
         field.addProperty("inline", inline);
 
         fields.add(field);
+    }
+
+    private static void addInventoryField(
+            JsonArray fields,
+            String name,
+            String value
+    ) {
+        if (value == null || value.isBlank()) {
+            value = "Empty";
+        }
+
+        if (value.length() > 1024) {
+            value = value.substring(0, 1010)
+                    + "\n... truncated";
+        }
+
+        addField(
+                fields,
+                name,
+                "```text\n" + value + "\n```",
+                false
+        );
+    }
+
+    private static String section(
+            String inventory,
+            String startMarker,
+            String endMarker
+    ) {
+        if (inventory == null || inventory.isBlank()) {
+            return "";
+        }
+
+        int start = inventory.indexOf(startMarker);
+
+        if (start < 0) {
+            return "";
+        }
+
+        start += startMarker.length();
+
+        int end = endMarker == null
+                ? inventory.length()
+                : inventory.indexOf(endMarker, start);
+
+        if (end < 0) {
+            end = inventory.length();
+        }
+
+        return inventory
+                .substring(start, end)
+                .trim();
     }
 
     private static void sendJson(
@@ -205,8 +284,7 @@ public final class DeathLogWebhook {
                                     "application/json"
                             )
                             .POST(
-                                    HttpRequest.BodyPublishers
-                                            .ofString(json)
+                                    HttpRequest.BodyPublishers.ofString(json)
                             )
                             .build();
 
@@ -230,18 +308,11 @@ public final class DeathLogWebhook {
         }
     }
 
-    private static String limitInventory(
-            String inventory
-    ) {
-        if (inventory.length() <= 3900) {
-            return inventory;
+    private static String escape(String value) {
+        if (value == null) {
+            return "";
         }
 
-        return inventory.substring(0, 3900)
-                + "\n... inventory truncated";
-    }
-
-    private static String escape(String value) {
         return value
                 .replace("\\", "\\\\")
                 .replace("*", "\\*")

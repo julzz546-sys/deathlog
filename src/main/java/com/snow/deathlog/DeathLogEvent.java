@@ -121,11 +121,11 @@ public final class DeathLogEvent {
 
         out.append("\nInventory:\n");
 
-        for (int slot = 9; slot < 36; slot++) {
+        for (int slot = 9; slot < inv.items.size(); slot++) {
             appendItem(
                     out,
                     "Slot " + slot,
-                    inv.getItem(slot)
+                    inv.items.get(slot)
             );
         }
 
@@ -155,6 +155,14 @@ public final class DeathLogEvent {
                 player.getItemBySlot(EquipmentSlot.FEET)
         );
 
+        out.append("\nMain Hand:\n");
+
+        appendItem(
+                out,
+                "Main Hand",
+                player.getMainHandItem()
+        );
+
         out.append("\nOffhand:\n");
 
         appendItem(
@@ -165,6 +173,7 @@ public final class DeathLogEvent {
 
         return out.toString();
     }
+
 
     private static void appendItem(
             StringBuilder out,
@@ -187,28 +196,24 @@ public final class DeathLogEvent {
                 .append(stack.getCount());
 
         if (stack.isEnchanted()) {
-            out.append(" [Enchants: ");
-
-            boolean first = true;
+            out.append("\n  ✨ Enchantments:");
 
             for (var entry : stack.getEnchantments().entrySet()) {
                 var enchantmentHolder = entry.getKey();
                 int level = entry.getIntValue();
 
-                if (!first) {
-                    out.append(", ");
-                }
+                String enchantmentId =
+                        enchantmentHolder.unwrapKey()
+                                .map(key -> key.identifier().toString())
+                                .orElseGet(
+                                        enchantmentHolder::getRegisteredName
+                                );
 
-                first = false;
-
-                String enchantmentId = enchantmentHolder.unwrapKey().map(key -> key.identifier().toString()).orElseGet(() -> enchantmentHolder.getRegisteredName());
-
-                out.append(enchantmentId)
-                        .append(" ")
+                out.append("\n  • ")
+                        .append(enchantmentId)
+                        .append(" — Level ")
                         .append(level);
             }
-
-            out.append("]");
         }
 
         out.append("\n");
